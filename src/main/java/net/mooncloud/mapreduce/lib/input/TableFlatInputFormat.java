@@ -27,6 +27,7 @@ import org.apache.hadoop.util.LineReader;
 import org.apache.hadoop.util.StringUtils;
 
 /**
+ * 平铺的输入格式类，一行为一条记录。
  * 
  * 以指定的分隔符解析数据，并把数据封装到Record中，作为mapper的value。 默认分隔符为","，可以通过设置参数自定义分割符 -D
  * mapreduce.input.recordreader.value.delimiter="\001"
