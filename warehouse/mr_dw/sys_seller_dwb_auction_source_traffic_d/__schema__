@@ -1,0 +1,1 @@
+mr_dw.sys_seller_dwb_auction_source_traffic_d,thedate:bigint,seller_id:bigint,shop_id:bigint,auction_id:bigint,src_id:bigint,ipv:bigint,iuv:bigint,dt:string:

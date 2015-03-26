@@ -1,0 +1,5 @@
+sunny,sunny,overcast,rainy,rainy,rainy,overcast,sunny,sunny,rainy,sunny,overcast,overcast,rainy
+hot,hot,hot,mild,cool,cool,cool,mild,cool,mild,mild,mild,hot,mild
+high,high,high,high,normal,normal,normal,high,normal,normal,normal,high,normal,high
+FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,TRUE
+no,no,yes,yes,yes,no,yes,no,yes,yes,yes,yes,yes,no
