@@ -25,7 +25,6 @@ public class Record implements Writable, DBWritable {
 	private int size;
 
 	public Record() {
-
 	}
 
 	public Record(String schema) {
