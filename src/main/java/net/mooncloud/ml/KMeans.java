@@ -134,7 +134,7 @@ public class KMeans
 	 */
 	private double Distance(double[] a, double[] b)
 	{
-		return Distance.EuclidDistance(a, b);
+		return DistanceMeasure.EuclidDistance(a, b);
 	}
 
 	public static void main(String[] args)
