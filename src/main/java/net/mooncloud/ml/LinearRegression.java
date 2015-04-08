@@ -1,6 +1,12 @@
 package net.mooncloud.ml;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Random;
+
+import org.apache.hadoop.io.Writable;
 
 /**
  * 多元一次线性回归
@@ -8,16 +14,13 @@ import java.util.Random;
  * @author Administrator
  * 
  */
-public class LinearRegression
-{
+public class LinearRegression implements Writable {
 
-	public double[][] getFactor()
-	{
+	public double[][] getFactor() {
 		return factor;
 	}
 
-	public void setFactor(double[][] factor)
-	{
+	public void setFactor(double[][] factor) {
 		this.factor = factor;
 	}
 
@@ -35,24 +38,19 @@ public class LinearRegression
 	 *            因变量值
 	 * @return factor 权值的方程组
 	 */
-	public double[][] buildEquationSystem(double[] x, double y)
-	{
-		if (x == null || x.length < 1)
-		{
+	public double[][] buildEquationSystem(double[] x, double y) {
+		if (x == null || x.length < 1) {
 			return null;
 		}
 
 		int num = x.length;
 		// 根据最小二乘法计算权值的方程组，对称数组
-		if (factor == null)
-		{
+		if (factor == null) {
 			factor = new double[num + 1][num + 2];
 		}
 
-		for (int j = 0; j < num; j++)
-		{
-			for (int k = j; k < num; k++)
-			{
+		for (int j = 0; j < num; j++) {
+			for (int k = j; k < num; k++) {
 				double t = x[j] * x[k];
 				factor[j][k] += t;
 				factor[k][j] = factor[j][k];
@@ -77,15 +75,12 @@ public class LinearRegression
 	 *            因变量值
 	 * @return factor 权值的方程组
 	 */
-	public double[][] buildEquationSystem(double[][] x, double[] y)
-	{
-		if (x == null || x.length < 1 || x[0] == null || x[0].length < 1)
-		{
+	public double[][] buildEquationSystem(double[][] x, double[] y) {
+		if (x == null || x.length < 1 || x[0] == null || x[0].length < 1) {
 			return null;
 		}
 
-		for (int i = 0; i < x.length; i++)
-		{
+		for (int i = 0; i < x.length; i++) {
 			buildEquationSystem(x[i], y[i]);
 		}
 
@@ -98,24 +93,19 @@ public class LinearRegression
 	 * @param other
 	 * @return
 	 */
-	public double[][] mergeEquationSystem(LinearRegression other)
-	{
-		if (other == null || other.factor == null)
-		{
+	public double[][] mergeEquationSystem(LinearRegression other) {
+		if (other == null || other.factor == null) {
 			return this.factor;
 		}
 
-		if (factor == null)
-		{
+		if (factor == null) {
 			return factor = other.factor;
 		}
 
 		int num = factor.length - 1;
 
-		for (int j = 0; j < num; j++)
-		{
-			for (int k = j; k < num; k++)
-			{
+		for (int j = 0; j < num; j++) {
+			for (int k = j; k < num; k++) {
 				factor[j][k] += other.factor[j][k];
 				factor[k][j] = factor[j][k];
 			}
@@ -139,41 +129,86 @@ public class LinearRegression
 	 * 
 	 * @return w 权值向量，最后一个元素为常数项
 	 */
-	public double[] solveEquationSystem()
-	{
-		if (factor == null || factor.length < 1)
-		{
+	public double[] solveEquationSystem() {
+		if (factor == null || factor.length < 1) {
 			return null;
 		}
 
 		// 初始化权值向量
 		double[] w = new double[factor.length];
 
+		double max = Double.MIN_VALUE, min = Double.MAX_VALUE;
+		for (int i = 0; i < factor.length; i++) {
+			for (int j = i; j < factor[i].length; j++) {
+				if (max < factor[i][j])
+					max = factor[i][j];
+				if (min > factor[i][j])
+					min = factor[i][j];
+			}
+		}
+		for (int i = 0; i < factor.length; i++) {
+			for (int j = 0; j < factor[i].length; j++) {
+				factor[i][j] = (factor[i][j] - min) / (max - min);
+			}
+		}
+
 		// 化简方程组
-		for (int i = 0; i < factor.length - 1; i++)
-		{
+		for (int i = 0; i < factor.length - 1; i++) {
 			double b = factor[i][i];
-			for (int k = i + 1; k < factor.length; k++)
-			{
+			for (int k = i + 1; k < factor.length; k++) {
 				double c = factor[k][i];
 				double d = c / b;
-				for (int j = i; j < factor[k].length; j++)
-				{
+				for (int j = i; j < factor[k].length; j++) {
 					factor[k][j] = factor[k][j] - d * factor[i][j];
 				}
 			}
 		}
 
 		// 计算权值-解方程组
-		for (int i = w.length - 1; i >= 0; i--)
-		{
+		for (int i = w.length - 1; i >= 0; i--) {
 			double t = 0f;
-			for (int j = i + 1; j < w.length; j++)
-			{
+			for (int j = i + 1; j < w.length; j++) {
 				t += factor[i][j] / factor[i][i] * w[j];
 			}
 			w[i] = (factor[i][w.length] / factor[i][i] - t);
 		}
+
+		// 大数
+		// BigDecimal[][] bigNumbers = new
+		// BigDecimal[factor.length][factor[0].length];
+		//
+		// double max = Double.MIN_VALUE,min = Double.MAX_VALUE;
+		// for (int i = 0; i < factor.length; i++) {
+		// for (int j = 0; j < factor[i].length; j++) {
+		// bigNumbers[i][j] = new BigDecimal(factor[i][j]);
+		// if(max<factor[i][j])
+		// max=factor[i][j];
+		// if(min>factor[i][j])
+		// min=factor[i][j];
+		// }
+		// }
+		// // 化简方程组
+		// for (int i = 0; i < factor.length - 1; i++) {
+		// BigDecimal b = bigNumbers[i][i];
+		// for (int k = i + 1; k < factor.length; k++) {
+		// BigDecimal c = bigNumbers[k][i];
+		// BigDecimal d = c.divide(b);
+		// for (int j = i; j < factor[k].length; j++) {
+		// bigNumbers[k][j] = bigNumbers[k][j].subtract(d
+		// .multiply(bigNumbers[i][j]));
+		// }
+		// }
+		// }
+		// // 计算权值-解方程组
+		// for (int i = w.length - 1; i >= 0; i--) {
+		// BigDecimal t = new BigDecimal(0f);
+		// for (int j = i + 1; j < w.length; j++) {
+		// t = t.add(bigNumbers[i][j].divide(bigNumbers[i][i]).multiply(
+		// new BigDecimal(w[j])));
+		// }
+		// w[i] = (bigNumbers[i][w.length].divide(bigNumbers[i][i])
+		// .subtract(t)).doubleValue();
+		// }
 
 		this.W = w;
 		return w;
@@ -188,24 +223,20 @@ public class LinearRegression
 	 *            数据数组
 	 * @return k 直线斜率
 	 */
-	public static double getLineSlope(double[] y)
-	{
+	public static double getLineSlope(double[] y) {
 		int num = y.length;
 		double[][] x = new double[num][1];
-		for (int i = 0; i < num; i++)
-		{
+		for (int i = 0; i < num; i++) {
 			x[i][0] = i;
 		}
 		double[] w = linearRegression(x, y);
 		return w[0];
 	}
 
-	public static double getLineSlope(double[] x, double[] y)
-	{
+	public static double getLineSlope(double[] x, double[] y) {
 		int num = y.length;
 		double[][] xx = new double[num][1];
-		for (int i = 0; i < num; i++)
-		{
+		for (int i = 0; i < num; i++) {
 			xx[i][0] = x[i];
 		}
 		double[] w = linearRegression(xx, y);
@@ -221,11 +252,9 @@ public class LinearRegression
 	 *            因变量样本向量
 	 * @return 权值向量，最后一个元素为常数项
 	 */
-	public static double[] linearRegression(double[][] x, double[] y)
-	{
+	public static double[] linearRegression(double[][] x, double[] y) {
 		// TODO JAVA源码
-		if (x == null || x.length < 1 || x[0] == null || x[0].length < 1)
-		{
+		if (x == null || x.length < 1 || x[0] == null || x[0].length < 1) {
 			return null;
 		}
 
@@ -235,12 +264,9 @@ public class LinearRegression
 
 		// 根据最小二乘法计算权值的方程组，对称数组
 		double[][] factor = new double[num + 1][num + 2];
-		for (int i = 0; i < x.length; i++)
-		{
-			for (int j = 0; j < x[i].length; j++)
-			{
-				for (int k = j; k < x[i].length; k++)
-				{
+		for (int i = 0; i < x.length; i++) {
+			for (int j = 0; j < x[i].length; j++) {
+				for (int k = j; k < x[i].length; k++) {
 					double t = x[i][j] * x[i][k];
 					factor[j][k] += t;
 					factor[k][j] = factor[j][k];
@@ -263,16 +289,28 @@ public class LinearRegression
 		// System.out.println();
 		// }
 
+		double max = Double.MIN_VALUE, min = Double.MAX_VALUE;
+		for (int i = 0; i < factor.length; i++) {
+			for (int j = i; j < factor[i].length; j++) {
+				if (max < factor[i][j])
+					max = factor[i][j];
+				if (min > factor[i][j])
+					min = factor[i][j];
+			}
+		}
+		for (int i = 0; i < factor.length; i++) {
+			for (int j = 0; j < factor[i].length; j++) {
+				factor[i][j] = (factor[i][j] - min) / (max - min);
+			}
+		}
+		
 		// 化简方程组
-		for (int i = 0; i < factor.length - 1; i++)
-		{
+		for (int i = 0; i < factor.length - 1; i++) {
 			double b = factor[i][i];
-			for (int k = i + 1; k < factor.length; k++)
-			{
+			for (int k = i + 1; k < factor.length; k++) {
 				double c = factor[k][i];
 				double d = c / b;
-				for (int j = i; j < factor[k].length; j++)
-				{
+				for (int j = i; j < factor[k].length; j++) {
 					factor[k][j] = factor[k][j] - d * factor[i][j];
 				}
 			}
@@ -290,11 +328,9 @@ public class LinearRegression
 		// }
 
 		// 计算权值-解方程组
-		for (int i = w.length - 1; i >= 0; i--)
-		{
+		for (int i = w.length - 1; i >= 0; i--) {
 			double t = 0f;
-			for (int j = i + 1; j < w.length; j++)
-			{
+			for (int j = i + 1; j < w.length; j++) {
 				t += factor[i][j] / factor[i][i] * w[j];
 			}
 			w[i] = (factor[i][w.length] / factor[i][i] - t);
@@ -318,22 +354,18 @@ public class LinearRegression
 	 * @param W
 	 * @return
 	 */
-	public double Identify(final double input[], final double[] W)
-	{
+	public double Identify(final double input[], final double[] W) {
 		double z = W[input.length];
-		for (int i = 0; i < input.length; i++)
-		{
+		for (int i = 0; i < input.length; i++) {
 			z += W[i] * input[i];
 		}
 
 		return z;// 1 / (1 + Math.pow(Math.E, -z));
 	}
 
-	public double Identify(final double input[])
-	{
+	public double Identify(final double input[]) {
 		double z = this.W[input.length];
-		for (int i = 0; i < input.length; i++)
-		{
+		for (int i = 0; i < input.length; i++) {
 			z += this.W[i] * input[i];
 		}
 
@@ -347,20 +379,17 @@ public class LinearRegression
 	 * @param y
 	 * @return
 	 */
-	public double[] TrainingSample(double[][] x, double[] y)
-	{
+	public double[] TrainingSample(double[][] x, double[] y) {
 		return this.W = linearRegression(x, y);
 	}
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		// 模拟y=x
 		int n = 10;
 		double inputs[][] = new double[n][1];
 		double outputs[] = new double[n];
 		Random r = new Random();
-		for (int i = 0; i < n; i++)
-		{
+		for (int i = 0; i < n; i++) {
 			inputs[i][0] = i;
 			outputs[i] = inputs[i][0] + (r.nextDouble() * 0.1 - 0.05);
 		}
@@ -368,20 +397,40 @@ public class LinearRegression
 		LinearRegression lr = new LinearRegression();
 		double W[] = lr.TrainingSample(inputs, outputs);
 
-		for (int i = 0; i < W.length; i++)
-		{
+		for (int i = 0; i < W.length; i++) {
 			System.out.print(W[i] + "\t");
 		}
 		System.out.println("--------------------------------------------");
 
 		double input[] = inputs[0];
 		double output = lr.Identify(input, W);
-		for (int i = 0; i < input.length; i++)
-		{
+		for (int i = 0; i < input.length; i++) {
 			System.out.print(input[i] + "\t");
 		}
 		System.out.println();
 		System.out.print(output + "\t");
 
+	}
+
+	@Override
+	public void write(DataOutput out) throws IOException {
+		out.writeInt(this.factor.length);
+		out.writeInt(this.factor[0].length);
+
+		for (int j = 0; j < this.factor.length; j++) {
+			for (int k = 0; k < this.factor[j].length; k++) {
+				out.writeDouble(this.factor[j][k]);
+			}
+		}
+	}
+
+	@Override
+	public void readFields(DataInput in) throws IOException {
+		this.factor = new double[in.readInt()][in.readInt()];
+		for (int j = 0; j < this.factor.length; j++) {
+			for (int k = 0; k < this.factor[j].length; k++) {
+				this.factor[j][k] = in.readDouble();
+			}
+		}
 	}
 }
