@@ -76,6 +76,13 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.taobao</groupId>
+			<artifactId>taobao-sdk</artifactId>
+			<version>2.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/taobao-sdk-2.0.jar</systemPath>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
 			<version>2.3.0</version>
@@ -100,15 +107,13 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.7</version>
-			<!-- <scope>system</scope>
-			<systemPath>${project.basedir}/lib/slf4j-api-1.7.5.jar</systemPath> -->
+			<!-- <scope>system</scope> <systemPath>${project.basedir}/lib/slf4j-api-1.7.5.jar</systemPath> -->
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.7</version>
-			<!-- <scope>system</scope>
-			<systemPath>${project.basedir}/lib/slf4j-log4j12-1.7.5.jar</systemPath> -->
+			<!-- <scope>system</scope> <systemPath>${project.basedir}/lib/slf4j-log4j12-1.7.5.jar</systemPath> -->
 		</dependency>
 	</dependencies>
 </project>
