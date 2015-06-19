@@ -179,27 +179,28 @@ public class Tuple extends BinaryComparable implements WritableComparable<Binary
 	@Override
 	public byte[] getBytes()
 	{
-		ByteArrayOutputStream bo;
-		ObjectOutputStream oo;
-		try
+		if(bytes == null)
 		{
-			bo = new ByteArrayOutputStream();
-			oo = new ObjectOutputStream(bo);
-			oo.writeObject(values);
-
-			bytes = bo.toByteArray();
-			length = bytes.length;
-
-			oo.close();
-			bo.close();
-
-			return bytes;
+			ByteArrayOutputStream bo;
+			ObjectOutputStream oo;
+			try
+			{
+				bo = new ByteArrayOutputStream();
+				oo = new ObjectOutputStream(bo);
+				oo.writeObject(values);
+	
+				bytes = bo.toByteArray();
+				length = bytes.length;
+	
+				oo.close();
+				bo.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-		return null;
+		return bytes;
 	}
 
 	/** A WritableComparator optimized for Text keys. */
