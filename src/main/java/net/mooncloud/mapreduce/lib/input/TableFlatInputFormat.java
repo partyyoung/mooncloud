@@ -148,8 +148,8 @@ class FlatTableRecordReader extends RecordReader<InputSplitFile, Record> {
 			tablePath = tablePathT;
 			Path schemaPath = new Path(tablePathT, "__schema__");
 			if (!fs.isFile(schemaPath)) {
-				// schema = job.get("schema"); // schema = "record:string";
-				// if (schema == null)
+				 schema = job.get("default_schema"); // schema = "record:string";
+				 if (schema == null)
 				throw new IOException("table: " + tablePathT.getName()
 						+ " not find file __schema__");
 			} else {
