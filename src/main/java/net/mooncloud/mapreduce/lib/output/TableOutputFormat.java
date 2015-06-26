@@ -163,28 +163,35 @@ public class TableOutputFormat extends FileOutputFormat<Record, NullWritable> {
 		try {
 			FileSystem fs = schemaPath.getFileSystem(job.getConfiguration());
 			if (!fs.isFile(schemaPath)) {
-				throw new IOException("table: " + tablePath.getName()
-						+ " not find file __schema__");
-			}
-			FSDataInputStream fsdis = fs.open(schemaPath);
-			String schema = fsdis.readLine();
-			fsdis.close();
-			if (schema.endsWith(":")) {
-				int firstCommaIndex = schema.indexOf(',');
-				int lastCommaIndex = schema.lastIndexOf(',');
-				String table = schema.substring(0, firstCommaIndex);
-				table = table.replace('.', '/');// .replace(System.getProperty("odps.project.name",
-												// "mr_dw"), "")
-				Path t = new Path(job.getConfiguration()
-						.get("table_parent", "") + table);
-				if (!t.equals(tablePath)) {
-					throw new IOException("table: " + tablePath
-							+ " not equals " + t + " of __schema__");
+				String schema = job.getConfiguration().get("default_schema");
+				if (schema == null)
+					throw new IOException("table: " + tablePath.getName()
+							+ " not find file __schema__");
+				LOG.info("mapred.output.schema = " + schema);
+				job.getConfiguration().set("mapred.output.schema", schema);
+			} else {
+				FSDataInputStream fsdis = fs.open(schemaPath);
+				String schema = fsdis.readLine();
+				fsdis.close();
+				if (schema.endsWith(":")) {
+					int firstCommaIndex = schema.indexOf(',');
+					int lastCommaIndex = schema.lastIndexOf(',');
+					String table = schema.substring(0, firstCommaIndex);
+					table = table.replace('.', '/');// .replace(System.getProperty("odps.project.name",
+													// "mr_dw"), "")
+					Path t = new Path(job.getConfiguration().get(
+							"table_parent", "")
+							+ table);
+					if (!t.equals(tablePath)) {
+						throw new IOException("table: " + tablePath
+								+ " not equals " + t + " of __schema__");
+					}
+					schema = schema.substring(firstCommaIndex + 1,
+							lastCommaIndex);
 				}
-				schema = schema.substring(firstCommaIndex + 1, lastCommaIndex);
+				LOG.info("mapred.output.schema = " + schema);
+				job.getConfiguration().set("mapred.output.schema", schema);
 			}
-			LOG.info("mapred.output.schema = " + schema);
-			job.getConfiguration().set("mapred.output.schema", schema);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
