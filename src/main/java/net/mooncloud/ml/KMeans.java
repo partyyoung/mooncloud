@@ -24,14 +24,14 @@ public class KMeans
 		this.K = K;
 	}
 
-	public int Identify(final double input[])
+	public int Identify(final double input[], final double[][] kmeans)
 	{
-		// 计算第样本与每个中心点的距离,并归类 --map
+		// 计算样本与每个中心点的距离,并归类 --map
 		double mindistance = Double.MAX_VALUE, distance;
 		int c = -1;
 		for (int j = 0; j < this.K; j++)
 		{
-			distance = Distance(input, this.kmeans[j]);
+			distance = Distance(input, kmeans[j]);
 			if (distance < mindistance)
 			{
 				mindistance = distance;
@@ -41,21 +41,18 @@ public class KMeans
 		return c;
 	}
 
-	public int[] TrainingSample(double[][] inputs)
+	public int Identify(final double input[])
 	{
+		return Identify(input, this.kmeans);
+	}
+
+	public int[] TrainingSample(double[][] inputs, double[][] initkmeans)
+	{
+		this.kmeans = initkmeans;
+
 		int num = inputs.length; // 样本量
 		int attrnum = inputs[0].length; // 样本维度
 		int[] inputClass = new int[num]; // 样本分类[0, K-1]
-
-		// 1.随机K个不相同的样本作为初始中心点
-		double[][] kmeans = new double[this.K][]; // K个中心点
-		Random r = new Random();
-		int SEED = num / this.K;
-		for (int i = 0; i < this.K; i++)
-		{
-			int k = r.nextInt(SEED) + i * SEED;
-			kmeans[i] = inputs[k];
-		}
 
 		int count = 1;
 		do
@@ -66,19 +63,9 @@ public class KMeans
 			for (int i = 0; i < num; i++)
 			{
 				double[] input = inputs[i];// 第i个样本
-				// 计算第i个样本与每个中心点的距离,并归类 --map
-				double mindistance = Double.MAX_VALUE, distance;
-				int c = 0;
-				for (int j = 0; j < this.K; j++)
-				{
-					distance = Distance(input, kmeans[j]);
-					if (distance < mindistance)
-					{
-						mindistance = distance;
-						inputClass[i] = c = j;
-					}
-				}
-				// 更新中心点,第i个样本与分类c的中心点最近 --combine--reduce
+				// 2.1 计算第i个样本与每个中心点的距离,并归类 --map
+				int c = inputClass[i] = Identify(input);
+				// 2.2 更新类别c的中心点 --combine--reduce
 				classInputs[c]++;
 				for (int k = 0; k < attrnum; k++)
 				{
@@ -98,10 +85,25 @@ public class KMeans
 		}
 		while (true);
 
-		this.kmeans = kmeans;
-
 		System.out.println("训练次数: " + count + "\t误差值: \n--------------------------------------------");
 		return inputClass;
+	}
+
+	public int[] TrainingSample(double[][] inputs)
+	{
+		int num = inputs.length; // 样本量
+
+		// 1.随机K个不相同的样本作为初始中心点
+		double[][] initkmeans = new double[this.K][]; // K个中心点
+		Random r = new Random();
+		int SEED = num / this.K;
+		for (int i = 0; i < this.K; i++)
+		{
+			int k = r.nextInt(SEED) + i * SEED;
+			initkmeans[i] = inputs[k];
+		}
+
+		return TrainingSample(inputs, initkmeans);
 	}
 
 	/**
@@ -139,24 +141,27 @@ public class KMeans
 
 	public static void main(String[] args)
 	{
-		KMeans kmeans = new KMeans(3);
-		double[][] inputs = new double[20][1];
+		KMeans kmeans = new KMeans(4);
+		double[][] inputs = new double[20][2];
 		Random r = new Random();
 		for (int i = 0; i < 20; i++)
 		{
-			inputs[i][0] = r.nextDouble() * 2 - 1 + r.nextInt(3) * 10;
-			System.out.println((inputs[i][0]));
+			inputs[i][0] = r.nextDouble() * 2 - 1 + r.nextInt(2) * 20;
+			inputs[i][1] = r.nextDouble() * 2 - 1 + r.nextInt(2) * 20;
+			System.out.println(inputs[i][0] + "\t" + inputs[i][1]);
 		}
 
 		int[] inputClass = kmeans.TrainingSample(inputs);
 
 		for (int i = 0; i < 20; i++)
 		{
-			System.out.println((inputs[i][0]) + " \t" + inputClass[i]);
+			System.out.println(inputs[i][0] + "\t" + inputs[i][1] + " \t" + inputClass[i]);
 		}
 		System.out.println("--------------------------------------------");
 
 		System.out.println(kmeans.Identify(new double[]
-		{ 20 }));
+		{
+				20, 20
+		}));
 	}
 }
